@@ -1,1 +1,1 @@
-# My website for HCDE 439 | Physical Computing Assignments
+# My website for HCDE 439 | Physical Computing
