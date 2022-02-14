@@ -1,0 +1,66 @@
+<!DOCTYPE html> 
+<html> 
+    <head> 
+        <meta charset="utf-8"> 
+        <meta name="viewport" content="width=device-width, maximum-scale=1.0" />
+
+        <title>Kenny's Assignment 4 | Libraries Page</title> 
+
+        <link href="style.css" media="screen" rel="stylesheet" type="text/css" />
+
+    </head> 
+    <body> 
+
+        <div class="header">
+            <h1>My Libraries Assignment using a Servo and Joystick</h1>
+            <p>
+                <img src="/static/LibrariesGif.gif" width=400></a>
+            </p>
+            <p>
+                This is the GIF of my working servo and joystick circuit. So magnificent.
+            </p>
+            <p>
+                <img src="/static/LibrariesCircuit.jpg" width=400></a>
+            </p>
+            <p>
+                This is a picture of my circuit. Because the joystick has a resistor built into it, I did not need to use an external
+                resistor, the servo also did not require one.
+            </p>
+            <p>
+                <pre><code>#include &ltServo.h&gt
+
+                    Servo myServo;  // create a servo object
+                    int x = A1; // setting a variable to represent analog input pin A1   
+                    int xval = 0; // setting joystick xval counter
+                    
+                    void setup() {
+                      myServo.attach(3); // attaches the servo on pin 3 to the servo object
+                    }
+                    
+                    void loop() {
+                      xval = analogRead(x); // reads the x value of joystick
+                      xval = map(xval, 0, 1023, 1, 179); // x value of joystick is mapped to the angle of rotation of the servo
+                      myServo.write(xval); // mapped values are written to pin 3 that sends the values information to the servo
+                    
+                      // wait for the servo to get there
+                      delay(15);
+                    }
+                    </code></pre>
+            </p>
+            <p>
+                Here is a snippet of my code. All of my important lines of code are commented. The values from the x input of the joystick
+                ranged from 0 to 1023 according to the serial monitor, so that is what I chose to use as my input low and high values, respectively.
+                As for the servo, the servo can only be programmed between 0 and 180 degrees which is why it is bound as such in my code. I only
+                mapped the servo to the x value of the joystick as both the x and y input values for the joystick give the same value, it just changes
+                based on the direction of the joystick being interacted with. 
+            </p>
+            <p>
+                <img src="/static/LibrariesSchematic.jpeg" width=400></a>
+            </p>
+            <p>
+                Here is the schematic that I drew up for my joystick and servo circuit. No calculations were required.
+            </p>
+        </div>
+        
+    </body>
+</html>
