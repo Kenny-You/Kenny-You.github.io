@@ -1,0 +1,246 @@
+<!DOCTYPE html> 
+<html> 
+    <head> 
+        <meta charset="utf-8"> 
+        <meta name="viewport" content="width=device-width, maximum-scale=1.0" />
+
+        <title>Final Project | Dodge</title> 
+
+        <link href="style.css" media="screen" rel="stylesheet" type="text/css" />
+
+    </head> 
+    <body> 
+
+        <div class="header">
+            <h1>Here is a very simple game that I made through p5.js, a joystick for control, and LCD screen for score keeping.</h1>
+            <p>
+                <img src="/static/FinalProject.gif" width=400></a>
+            </p>
+            <p>
+                Here is my game in action! So smooth.
+            </p>
+            <p>
+                <img src="/static/FinalProjectCircuit.jpg" width=400></a>
+            </p>
+            <p>
+                This is a picture of my circuit. The ball in the game only moves in the x-axis, so the joystick is only wired to the x value and not the y.
+                Additionally, there is a potentiameter installed for the LCD screen to adjust the brightness of the screen, as well as a 220 ohm resistor
+                for the LED power. 
+            </p>
+            <p>
+                <pre><code>
+                    #include &lt;LiquidCrystal.h&gt;
+
+
+                        //initialize sensor value variables
+                        int xval = 0;
+                        
+                        // initialize the library by associating any needed LCD interface pin
+                        // with the arduino pin number it is connected to
+                        const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2;
+                        LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+                        
+                        void setup() {
+                          // put your setup code here, to run once:
+                          lcd.begin(16, 1);
+                          Serial.begin(9600); //set baud rate
+                        }
+                        
+                        void loop() {
+                          //collect x value
+                          xval = analogRead(A0); //read sensor value from arduino
+                          delay(1);
+                        
+                          //print the values read
+                          Serial.println(xval); 
+                          delay(2);
+                        
+                          if (Serial.available()) {
+                            // wait a bit for the entire message to arrive
+                            delay(200);
+                            // clear the screen
+                            lcd.clear();
+                            // read all the available characters
+                            while (Serial.available() > 0) {
+                              // display each character to the LCD
+                              lcd.write(Serial.read());
+                            }
+                          }
+                          
+                        }
+                </code></pre>
+                <h3>Dodge.js code below</h3>
+                <pre><code>
+                    var serial; //variable to hold an instance of the serial port library
+                    var portName = '/dev/tty.usbmodem144401'; //fill in with YOUR port
+                    var xValue = 0; //variable for x value change
+                    var score = 0; //counter for score
+
+                    function getRndInteger(min, max) { // Generates a random whole integer between set values
+                        return Math.floor(Math.random() * (max - min)) + min;
+                    }
+
+                    function setup() {
+                    createCanvas(displayWidth, displayHeight - 100);
+
+                    serial = new p5.SerialPort(); //a new instance of serial port library
+
+                    //set up events for serial communication
+                    serial.on('connected', serverConnected);
+                    serial.on('open', portOpen);
+                    //console.log('btwn open');
+                    serial.on('data', serialEvent);
+                    //console.log('after even');
+                    serial.on('error', serialError);
+                    serial.on('close', portClose);
+
+                    //open our serial port
+                    serial.open(portName);
+
+                    //let's figure out what port we're on; useful for determining your port
+                    //serial.on('list', printList); //set a callback function for the serialport list event
+                    //serial.list(); //list the serial ports
+                    }
+
+                    //all my callback functions are down here:
+                    //these are useful for giving feedback
+
+                    function serverConnected(){
+                        console.log('connected to the server');
+                    }
+
+                    function portOpen(){
+                    console.log('the serial port opened!');
+                    }
+
+                    //make sure you're reading data based on how you're sending from arduino
+                    function serialEvent() {
+                    //receive serial data here
+                    var inString = serial.readLine();
+                    
+                    //check to make sure the string has values
+                    if (inString.length > 0){
+                        var inData = inString; //set new value to manipulate
+                        xValue = map(inData, 1023, 0, 0, displayWidth); //x value mapping to size of screen
+                        }
+                    }
+
+                    function serialError(err){
+                    console.log('something went wrong with the port. ' + err);
+                    }
+
+                    function portClose(){
+                    console.log('the port was closed');
+                    }
+
+                    // get the list of ports:
+                    function printList(portList) {
+                    // portList is an array of serial port names
+                    for (var i = 0; i &lt; portList.length; i++) {
+                    // Display the list the console:
+                    print(i + " " + portList[i]);
+                    }
+                    }
+
+                    class Spaceship { // class for updating the circle and creating a circle object with specific attributes
+                    constructor(x, size) {
+                        this.x = x;
+                        this.size = size;
+                    }
+
+                    draw() {
+                        if (keyIsDown(LEFT_ARROW)) { //Using arrow keys instead (must add this.x within constructor) 
+                        this.x -= 40;
+                        
+                        if (this.x &lt;= 0)  {
+                            this.x += 40;
+                        }
+                        }
+                    
+                        if (keyIsDown(RIGHT_ARROW)) {
+                        this.x += 40;
+
+                        if (this.x >= displayWidth)  {
+                            this.x -= 40;
+                        }
+                        }
+
+                        clear();
+                        fill("#FF006E");
+                        noStroke();
+                        circle(this.x, 700, this.size);
+                    }
+
+                    /*collision(){
+                        if (xValue + this.size / 2 > hail.x && hail.height && xValue - this.size / 2 < hail.x + hail.width) {
+                        window.location.reload();
+                        }
+                    }*/
+                    }
+
+                    class Hail { // Creating a falling class object with many attributes
+                    constructor(height) {
+                        this.height = height;
+                        this.x = getRndInteger(0, 1430);
+                        this.ypos = -300;
+                        this.width = getRndInteger(50, 400);
+                    }
+
+                    scoreBoard() { // Keeps track of score and sends data to arduino for serial processing
+                        textSize(50);
+                        text(score, displayWidth / 2, 790);
+                        fill("#");
+                        serial.write("Score: " + score);
+                    }
+
+                    drawHail() { // Loops the hail onto the screen
+                        fill("#FF934F");
+                        noStroke();
+                        rect(this.x, this.ypos, this.width, this.height);
+                        if (this.ypos >= 800) {
+                        this.x = getRndInteger(0, 1430);
+                        this.ypos = -300;
+                        this.width = getRndInteger(50, 400);
+                        score += 1;
+                        }
+                        rect(this.x, this.ypos, this.width, this.height);
+                        this.ypos += 17;
+                    }
+                    }
+
+                    var spaceship = new Spaceship(715, 75); // Creating an instance of Spaceship
+                    var hail = new Hail(300); // Creating an instance of Hail
+
+                    function draw() { // Draws instances onto the canvas
+                    spaceship.draw();
+                    //spaceship.collision();
+                    hail.scoreBoard();
+                    hail.drawHail();
+                    }
+                </code></pre>
+            </p>
+            <p>
+                Here is my arduino code on top and p5.js code on the bottom. All of my important lines are commented. 
+            </p>
+            <p>
+                <img src="/static/JoystickSchematic.jpeg" width=400></a>
+            </p>
+            <p>
+                Here is the schematic that I drew up for my joystick.
+            </p>
+            <p>
+                <img src="/static/LCDSchematic.png" width=400></a>
+            </p>
+            <p>
+                Here is the schematic that I drew up for my LCD Screen.
+            </p>
+            <p>
+                <a href = "https://youtu.be/cIA4qcKD9Sw">Link to my video demo!</a>
+            </p>
+            <p>
+                Here is the schematic that I drew up for my LCD Screen.
+            </p>
+        </div>
+        
+    </body>
+</html>
